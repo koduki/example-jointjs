@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8">
+    <title>Simple Diagram Editor</title>
+
+    <link rel="stylesheet" type="text/css"
+        href="https://cdnjs.cloudflare.com/ajax/libs/jointjs/3.5.5/joint.core.min.css">
+    <style type="text/css">
+        h1,
+        p,
+        div {
+            padding: 0;
+            margin: 0;
+        }
+
+        h1 {
+            font-size: 14px;
+        }
+
+        #paper {
+            border: solid 1px #ccc;
+            background-color: #eee;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1><a href="https://resources.jointjs.com/demos/org">Simple Diagram Editor</a></h1>
+    <p>Visioみたいなのになるはず</p>
+
+
+    <div id="myholder"></div>
+    <select id="new-item-type">
+        <option>Rect</option>
+        <option>Circle</option>
+    </select>
+    <input type="text" placeholder="New item label" id="new-item-label" />
+    <input type="button" value="add item" id="add-item" />
+    <input type="checkbox" id="link" />link
+    <input type="button" value="init" id="init" />
+    <div id="paper"></div>
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+    <script src="https://backbonejs.org/backbone-min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jointjs/3.5.5/joint.min.js"></script>
+    <script>
+        const graph = new joint.dia.Graph();
+        const paper = new joint.dia.Paper({
+            el: $('#paper'),
+            width: 800,
+            height: 600,
+            gridSize: 1,
+            model: graph,
+            perpendicularLinks: true,
+            restrictTranslate: true
+        });
+
+        const mkCircle = (pos, size, label) => {
+            const item = new joint.shapes.standard.Circle();
+            item.position(pos.x, pos.y);
+            item.resize(size.width, size.height);
+            item.attr('root/title', 'joint.shapes.standard.Circle');
+            item.attr('label/text', label);
+            item.attr('body/fill', 'lightblue');
+            item.on('change:position', (item, position) => {
+                console.log({
+                    id: item.attributes.id,
+                    type: 'Circle',
+                    label: label,
+                    x: position.x,
+                    y: position.y
+                });
+            });
+            item.addTo(graph);
+        }
+
+        const mkRect = (pos, size, label) => {
+            const item = new joint.shapes.standard.Rectangle();
+            item.position(pos.x, pos.y);
+            item.resize(size.width, size.height);
+            item.attr('root/title', 'joint.shapes.standard.Rectangle');
+            item.attr('label/text', label);
+            item.attr('body/fill', 'lightblue');
+
+            item.on('change:position', (item, position) => {
+                console.log({
+                    id: item.attributes.id,
+                    type: 'Rect',
+                    label: label,
+                    x: position.x,
+                    y: position.y
+                });
+            });
+            item.addTo(graph);
+        }
+
+        const addLink = (source, target) => {
+            const link = new joint.dia.Link();
+            link.source(source);
+            link.target(target);
+            link.attr({
+                '.connection': { stroke: 'black' },
+                '.marker-source': { fill: 'black', d: 'M 10 0 L 0 5 L 10 10 z' },
+                '.marker-target': { fill: 'black', d: 'M 10 0 L 0 5 L 10 10 z' }
+            });
+
+            link.addTo(graph);
+        };
+
+        let cellViewFrom = null;
+        let from = null;
+        let to = null;
+
+        paper.on("cell:pointerup", (cellView) => {
+            const linkMode = $("#link").prop("checked");
+            if (!linkMode) return;
+            if (from === null) {
+                cellView.highlight();
+                cellViewFrom = cellView;
+                from = cellView.model;
+            } else if (to === null) {
+                to = cellView.model;
+            }
+            if (from && to) {
+                addLink(from, to);
+                from = null;
+                to = null;
+                $("#link").prop("checked", false);
+                cellViewFrom.unhighlight();
+            }
+        });
+
+        document.getElementById("add-item").onclick = function () {
+            const label = document.getElementById("new-item-label").value;
+            const type = document.getElementById('new-item-type').value
+
+            switch (type) {
+                case "Rect":
+                    mkRect({ x: 50, y: 20 }, { width: 100, height: 50 }, label);
+                    break;
+                case "Circle":
+                    mkCircle({ x: 50, y: 20 }, { width: 100, height: 50 }, label);
+                    break;
+            }
+
+        };
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <title>ページタイトル</title>
+
+    <link rel="stylesheet" type="text/css" href="../node_modules/jointjs/dist/joint.min.css">
+    <style type="text/css">
+        h1, p, div { padding:0; margin:0; }
+        h1 { font-size:14px; }
+        #paper { border:solid 1px #ccc; background-color: #eee; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1><a href="https://shimz.me/blog/javascript/2979">フロー図や組織図、UML図などを簡単に表示できるライブラリ「JointJS」</a></h1>
+    <p>上記ページのサンプルを動かしてみる！！</p>
+
+    <div id="paper"></div>
+    <script src="../node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="../node_modules/lodash/lodash.min.js"></script>
+    <script src="../node_modules/backbone/backbone-min.js"></script>
+    <script src="../node_modules/jointjs/dist/joint.min.js"></script>
+    <script>
+        // graphモデルの生成
+        var graph = new joint.dia.Graph;
+
+        // paper(グラフを表示するステージ)の生成
+        var paper = new joint.dia.Paper({
+            el: $('#paper'),
+            width: '100%',
+            height: '500',
+            model: graph
+        });
+
+        /**
+         *  shape生成
+         */
+        //rectシェイプオブジェクトの生成
+        var rect = new joint.shapes.basic.Rect({
+            position: { x: 100, y: 30 },
+            size: { width: 100, height: 30 },
+            attrs: { rect: { fill: 'blue' }, text: { text: 'my box', fill: 'white' } }
+        });
+
+        // rectシェイプの属性を設定
+        rect.attr({
+            rect: { fill: '#2C3E50', rx: 5, ry: 5, 'stroke-width': 2, stroke: 'black' },
+            text: {
+                text: 'my label', fill: '#3498DB',
+                'font-size': 18, 'font-weight': 'bold', 'font-variant': 'small-caps', 'text-transform': 'capitalize'
+            }
+        });
+
+        //rectオブジェクトからクローン(rect2)を生成
+        var rect2 = rect.clone();
+
+        //rect2の位置を設定
+        rect2.translate(300,50);
+
+        /**
+         * link生成
+         */
+        // linkオブジェクトの生成
+        var link = new joint.dia.Link({
+            source: { id: rect.id },
+            target: { id: rect2.id },
+            attrs: {}  //attrs用の空オブジェクト。これが無いとlink.attrでエラーがでる
+        });
+
+        // link属性の設定
+        link.attr({
+            '.connection': { stroke: 'blue' },
+            '.marker-source': { fill: 'red', d: 'M 10 0 L 0 5 L 10 10 z' },
+            '.marker-target': { fill: 'yellow', d: 'M 10 0 L 0 5 L 10 10 z' }
+        });
+
+        // 折点の設定
+        link.set('vertices', [{ x: 300, y: 60 }, { x: 400, y: 60 }, { x: 400, y: 20 }]);
+
+        // 線を滑らかにする
+        link.set('smooth', true);
+
+        // rectとlinkをグラフに追加する
+        graph.addCells([rect, rect2, link]);
+    </script>
+</body>
+</html>

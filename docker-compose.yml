@@ -1,0 +1,13 @@
+version: '3'
+services:
+  node:
+    build:
+      context: ./docker/node
+      dockerfile: Dockerfile
+    image: node:1.0
+    container_name: node
+    tty: true
+    volumes:
+      - ./src:/usr/src/app
+    ports:
+      - "8080:3000"
